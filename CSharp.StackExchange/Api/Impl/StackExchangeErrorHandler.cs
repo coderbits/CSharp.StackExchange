@@ -47,14 +47,17 @@ namespace CSharp.StackExchange.Api.Impl
         /// <param name="response">The response message with the error.</param>
         public override void HandleError(Uri requestUri, HttpMethod requestMethod, HttpResponseMessage<byte[]> response)
         {
+			if (response == null) throw new ArgumentNullException("response");
+
             var type = (int)response.StatusCode / 100;
-            if (type == 4)
+            switch (type)
             {
-                HandleClientErrors(response);
-            }
-            else if (type == 5)
-            {
-                HandleServerErrors(response.StatusCode);
+            	case 4:
+            		HandleClientErrors(response.StatusCode);
+            		break;
+            	case 5:
+            		HandleServerErrors(response.StatusCode);
+            		break;
             }
 
             // if not otherwise handled, do default handling and wrap with StackExchangeApiException
@@ -68,53 +71,51 @@ namespace CSharp.StackExchange.Api.Impl
             }
         }
 
-        private void HandleClientErrors(HttpResponseMessage<byte[]> response)
+		private void HandleClientErrors(HttpStatusCode statusCode)
         {
-        	if (response == null) throw new ArgumentNullException("response");
-
-			if (response.StatusCode == (HttpStatusCode)400)
+			if (statusCode == (HttpStatusCode)400)
 			{
 				throw new StackExchangeApiException(
 					"An invalid parameter was passed, this includes even 'high level' parameters like key or site.",
 					StackExchangeApiError.BadParameter);
 			}
 
-			if (response.StatusCode == (HttpStatusCode)401)
+			if (statusCode == (HttpStatusCode)401)
         	{
         		throw new StackExchangeApiException(
 					"A method that requires an access token (obtained via authentication) was called without one.",
         			StackExchangeApiError.AccessTokenRequired);
         	}
 
-			if (response.StatusCode == (HttpStatusCode)402)
+			if (statusCode == (HttpStatusCode)402)
 			{
 				throw new StackExchangeApiException(
 					"An invalid access token was passed to a method.",
 					StackExchangeApiError.InvalidAccessToken);
 			}
 
-			if (response.StatusCode == (HttpStatusCode)403)
+			if (statusCode == (HttpStatusCode)403)
         	{
         		throw new StackExchangeApiException(
 					"A method which requires certain permissions was called with an access token that lacks those permissions.",
         			StackExchangeApiError.AccessDenied);
         	}
 
-			if (response.StatusCode == (HttpStatusCode)404)
+			if (statusCode == (HttpStatusCode)404)
 			{
 				throw new StackExchangeApiException(
 					"An attempt was made to call a method that does not exist. Note, calling methods that expect numeric ids (like /users/{ids}) with non-numeric ids can also result in this error.",
 					StackExchangeApiError.NoMethod);
 			}
 
-			if (response.StatusCode == (HttpStatusCode)405)
+			if (statusCode == (HttpStatusCode)405)
 			{
 				throw new StackExchangeApiException(
 					"A method was called in a manner that requires an application key (generally, with an access token), but no key was passed.",
 					StackExchangeApiError.KeyRequired);
 			}
 
-			if (response.StatusCode == (HttpStatusCode)406)
+			if (statusCode == (HttpStatusCode)406)
 			{
 				throw new StackExchangeApiException(
 					"An access token is no longer believed to be secure, normally because it was used on a non-HTTPS call. The access token will be invalidated if this error is returned.",
