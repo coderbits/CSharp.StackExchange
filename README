@@ -1,0 +1,14 @@
+CSharp.StackExchange is a C# .NET wrapper for the StackExchange RESTful API.
+
+It contains the following
+
+  * OAuth connection support for StackExchange
+  * API access via explicit Urls and response handling for StackExchange
+  * ASP.NET MVC 3 example project
+
+The following will be added
+
+  * API binding for StackExchange
+  * Console application example project
+
+API documentation can be found here: https://api.stackexchange.com/docs
