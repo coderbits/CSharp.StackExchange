@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.StackExchange", "CSharp.StackExchange\CSharp.StackExchange.csproj", "{BC14C02D-903A-4F0B-B340-1497DD129D6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.StackExchange.MVC 3 Example", "CSharp.StackExchange.MVC 3 Example\CSharp.StackExchange.MVC 3 Example.csproj", "{03EC0A00-9D3D-415D-8B31-64F8AF9568F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC14C02D-903A-4F0B-B340-1497DD129D6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC14C02D-903A-4F0B-B340-1497DD129D6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC14C02D-903A-4F0B-B340-1497DD129D6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC14C02D-903A-4F0B-B340-1497DD129D6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03EC0A00-9D3D-415D-8B31-64F8AF9568F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03EC0A00-9D3D-415D-8B31-64F8AF9568F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03EC0A00-9D3D-415D-8B31-64F8AF9568F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03EC0A00-9D3D-415D-8B31-64F8AF9568F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
