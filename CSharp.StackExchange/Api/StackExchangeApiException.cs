@@ -61,7 +61,7 @@ namespace CSharp.StackExchange.Api
         public StackExchangeApiException(string message, Exception innerException)
             : base(message, innerException)
         {
-            _error = StackExchangeApiError.InternalError;
+            _error = StackExchangeApiError.ServerError;
         }
 
         /// <summary>

@@ -19,7 +19,10 @@
 #endregion
 
 using System;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
+using System.Text;
 using Spring.Http;
 using Spring.Rest.Client;
 using Spring.Rest.Client.Support;
@@ -33,6 +36,9 @@ namespace CSharp.StackExchange.Api.Impl
     /// <author>Scott Smith</author>
     class StackExchangeErrorHandler : DefaultResponseErrorHandler
     {
+		// Default encoding for JSON
+		private static readonly Encoding DefaultCharset = new UTF8Encoding(false);
+
     	/// <summary>
         /// Handles the error in the given response. 
         /// <para/>
@@ -53,7 +59,7 @@ namespace CSharp.StackExchange.Api.Impl
             switch (type)
             {
             	case 4:
-            		HandleClientErrors(response.StatusCode);
+            		HandleClientErrors(response);
             		break;
             	case 5:
             		HandleServerErrors(response.StatusCode);
@@ -71,80 +77,42 @@ namespace CSharp.StackExchange.Api.Impl
             }
         }
 
-		private void HandleClientErrors(HttpStatusCode statusCode)
-        {
-			if (statusCode == (HttpStatusCode)400)
-			{
-				throw new StackExchangeApiException(
-					"An invalid parameter was passed, this includes even 'high level' parameters like key or site.",
-					StackExchangeApiError.BadParameter);
-			}
+		private void HandleClientErrors(HttpResponseMessage<byte[]> response)
+		{
+			if (response == null) throw new ArgumentNullException("response");
 
-			if (statusCode == (HttpStatusCode)401)
-        	{
-        		throw new StackExchangeApiException(
-					"A method that requires an access token (obtained via authentication) was called without one.",
-        			StackExchangeApiError.AccessTokenRequired);
-        	}
+			var errorText = ExtractErrorDetailsFromResponse(response);
 
-			if (statusCode == (HttpStatusCode)402)
-			{
-				throw new StackExchangeApiException(
-					"An invalid access token was passed to a method.",
-					StackExchangeApiError.InvalidAccessToken);
-			}
-
-			if (statusCode == (HttpStatusCode)403)
-        	{
-        		throw new StackExchangeApiException(
-					"A method which requires certain permissions was called with an access token that lacks those permissions.",
-        			StackExchangeApiError.AccessDenied);
-        	}
-
-			if (statusCode == (HttpStatusCode)404)
-			{
-				throw new StackExchangeApiException(
-					"An attempt was made to call a method that does not exist. Note, calling methods that expect numeric ids (like /users/{ids}) with non-numeric ids can also result in this error.",
-					StackExchangeApiError.NoMethod);
-			}
-
-			if (statusCode == (HttpStatusCode)405)
-			{
-				throw new StackExchangeApiException(
-					"A method was called in a manner that requires an application key (generally, with an access token), but no key was passed.",
-					StackExchangeApiError.KeyRequired);
-			}
-
-			if (statusCode == (HttpStatusCode)406)
-			{
-				throw new StackExchangeApiException(
-					"An access token is no longer believed to be secure, normally because it was used on a non-HTTPS call. The access token will be invalidated if this error is returned.",
-					StackExchangeApiError.AccessTokenCompromised);
-			}
-        }
+			throw new StackExchangeApiException(
+				"The server indicated a client error has occured and returned the following HTTP status code: " + response.StatusCode +
+				Environment.NewLine + Environment.NewLine +
+				errorText,
+				StackExchangeApiError.ClientError);
+		}
 
     	private void HandleServerErrors(HttpStatusCode statusCode)
         {
-			if (statusCode == (HttpStatusCode)500) 
-            {
-                throw new StackExchangeApiException(
-					"An unexpected error occurred in the API. It has been logged, and Stack Exchange developers have been notified. You should report these errors on Stack Apps if you want to be notified when they're fixed.", 
-                    StackExchangeApiError.InternalError);
-		    }
-
-			if (statusCode == (HttpStatusCode)502)
-			{
-				throw new StackExchangeApiException(
-					"An application has violated part of the rate limiting contract, so the request was terminated.",
-					StackExchangeApiError.ThrottleViolation);
-			}
-
-			if (statusCode == (HttpStatusCode)503)
-			{
-				throw new StackExchangeApiException(
-					"Some or all of the API is unavailable. Applications should backoff on requests to the method invoked.",
-					StackExchangeApiError.TemporarilyUnavailable);
-			}
+			throw new StackExchangeApiException(
+				"The server indicated a server error has occured and returned the following HTTP status code: " + statusCode,
+				StackExchangeApiError.ServerError);
 	    }
+
+		private string ExtractErrorDetailsFromResponse(HttpResponseMessage<byte[]> response)
+		{
+			if (response.Body == null)
+			{
+				return null;
+			}
+			var contentType = response.Headers.ContentType;
+			var charset = (contentType != null && contentType.CharSet != null) ? contentType.CharSet : DefaultCharset;
+
+			var stream = new MemoryStream(response.Body);
+			var gZipStream = new GZipStream(stream, CompressionMode.Decompress);
+
+			var responseUncompressed = new byte[response.Body.Length * 10];
+			var size = gZipStream.Read(responseUncompressed, 0, responseUncompressed.Length);
+
+			return charset.GetString(responseUncompressed, 0, size);
+		}
     }
 }
